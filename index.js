@@ -18,6 +18,7 @@ app.use(morgan('dev'));
 
 //routes
 const userRoute=require("./routes/userRoute");
+const adminRoute=require("./routes/adminRoute");
 
 //error handler
 const errorHandler = require("./middleware/err");
@@ -71,6 +72,7 @@ app.listen(port, () => console.log(`http://127.0.0.1:${port}`));
 // app.use("",);
 // app.use("/api/v1/blog",blogRoute);
 app.use("/api/v1/user",userRoute)
+app.use("/api/v1/admin",adminRoute);
 
 
 app.use(errorHandler);
