@@ -25,6 +25,7 @@ app.use(morgan('dev'));
 const userRoute=require("./routes/userRoute");
 const adminRoute=require("./routes/adminRoute");
 const productRoute=require("./routes/productRoute");
+const categoryRoute=require("./routes/categoryRoute");
 
 //error handler
 const errorHandler = require("./middleware/err");
@@ -78,6 +79,8 @@ app.listen(port, () => console.log(`http://127.0.0.1:${port}`));
 app.use("/api/v1/user",userRoute)
 app.use("/api/v1/admin",adminRoute);
 app.use("/api/v1/product",productRoute);
+app.use("/api/v1/category",categoryRoute);
+
 
 
 app.use(errorHandler);
