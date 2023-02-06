@@ -10,15 +10,21 @@ const xss=require('xss-clean');
 const helmet=require('helmet');
 const rateLimit=require('express-rate-limit')
 const morgan=require('morgan');
-
+const bodyParser = require('body-parser')
 
 
 app.use(morgan('dev'));
 
 
+
+
+
+
+
 //routes
 const userRoute=require("./routes/userRoute");
 const adminRoute=require("./routes/adminRoute");
+const productRoute=require("./routes/productRoute");
 
 //error handler
 const errorHandler = require("./middleware/err");
@@ -31,7 +37,8 @@ app.use(rateLimit({
 	windowMs: 15 * 60 * 1000, 
 	max: 100, 
 }))
-
+app.use(express.json());
+app.use(express.static("./public"));
 app.use(fileUpload({
   useTempFiles:true,
   limits: { fileSize: 50 * 1024 * 1024 },
@@ -39,8 +46,6 @@ app.use(fileUpload({
 
 
 
-
-app.use(express.json());
 
 
 
@@ -69,10 +74,10 @@ app.listen(port, () => console.log(`http://127.0.0.1:${port}`));
 
 
 
-// app.use("",);
-// app.use("/api/v1/blog",blogRoute);
+
 app.use("/api/v1/user",userRoute)
 app.use("/api/v1/admin",adminRoute);
+app.use("/api/v1/product",productRoute);
 
 
 app.use(errorHandler);
