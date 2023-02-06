@@ -52,6 +52,22 @@ const uploadImage=asyncWrapper(async(req,res)=>{
 })
 
 
+//search data using category data
+const getProductByCategory=asyncWrapper(async(req,res)=>{
+    if(!req.query) throw new CustomError("Invalid query",StatusCodes.BAD_REQUEST);
+    console.log(req.query);
+    const searchData=await Product.find(req.query).populate('category');
+    res.status(StatusCodes.OK).json(searchData)
+})
+
+const getProductByCategoryId=asyncWrapper(async(req,res)=>{
+    const _id=req.params.catId;
+    if(!_id) throw new CustomError("Category id not present ",StatusCodes.BAD_REQUEST);
+    const searchData=await Product.find({category:_id}).populate('category');
+    res.status(StatusCodes.OK).json(searchData)
+})
+
+
 
 module.exports={
     getAllProduct,
@@ -59,6 +75,8 @@ module.exports={
     getProductById,
     editProduct,
     deleteProduct,
-    uploadImage
+    uploadImage,
+    getProductByCategory,
+    getProductByCategoryId
 }
 

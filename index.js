@@ -26,6 +26,7 @@ const userRoute=require("./routes/userRoute");
 const adminRoute=require("./routes/adminRoute");
 const productRoute=require("./routes/productRoute");
 const categoryRoute=require("./routes/categoryRoute");
+const searchProduct=require("./routes/searchRoute");
 
 //error handler
 const errorHandler = require("./middleware/err");
@@ -80,6 +81,8 @@ app.use("/api/v1/user",userRoute)
 app.use("/api/v1/admin",adminRoute);
 app.use("/api/v1/product",productRoute);
 app.use("/api/v1/category",categoryRoute);
+app.use("/api/v1/search",searchProduct);
+
 
 
 
