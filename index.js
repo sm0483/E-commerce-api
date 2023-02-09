@@ -28,6 +28,7 @@ const productRoute=require("./routes/productRoute");
 const categoryRoute=require("./routes/categoryRoute");
 const searchProductRoute=require("./routes/searchRoute");
 const addressRoute=require("./routes/addressRoute");
+const orderRoute=require("./routes/orderRoute");
 
 //error handler
 const errorHandler = require("./middleware/err");
@@ -84,6 +85,8 @@ app.use("/api/v1/product",productRoute);
 app.use("/api/v1/category",categoryRoute);
 app.use("/api/v1/search",searchProductRoute);
 app.use("/api/v1/address",addressRoute);
+app.use("/api/v1/order",orderRoute);
+
 
 
 
