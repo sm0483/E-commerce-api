@@ -11,16 +11,16 @@ const CustomError = require("../error/custom");
 const { createJwt,tokenValid} = require("../utils/jwt");
 const tokenType=require('../constants/tokenType');
 const { hashPassword } = require("../utils/bcrypt");
+const { registerValidation, loginValidation,
+    updateUserValidation,updatePasswordValidation} = require("../utils/joiValidate");
 
 
 
 
 const registerAdmin=asyncWrapper(async(req,res)=>{
-    const {name,email,password}=req.body;
-    if(!name) throw new CustomError("Name should be present",StatusCodes.BAD_REQUEST);
-    if(!email) throw new CustomError("Email should be present",StatusCodes.BAD_REQUEST);
-    if(!password) throw new CustomError("Password should be present",StatusCodes.BAD_REQUEST);
-
+    const {email}=req.body;
+    const errorResponse=registerValidation(req.body);
+    if(errorResponse.error) throw new CustomError(errorResponse.error.message,StatusCodes.BAD_REQUEST);
     const emailCheck=await Admin.find({email});
     if(emailCheck.length!==0) throw new CustomError("Email already present",StatusCodes.CONFLICT);
     const response=await Admin.create(req.body);
@@ -35,7 +35,8 @@ const registerAdmin=asyncWrapper(async(req,res)=>{
 
 const loginAdmin=asyncWrapper(async(req,res)=>{
     const {email,password}=req.body;
-    if(!email || !password) throw new CustomError("Invalid Credential",StatusCodes.FORBIDDEN);
+    const errorResponse=loginValidation(req.body);
+    if(errorResponse.error) throw new CustomError(errorResponse.error.message,StatusCodes.BAD_REQUEST);
     const admin = await Admin.findOne({ email });
     if(!admin) throw new CustomError("Invalid Credential",StatusCodes.FORBIDDEN);
     const isValid=await admin.comparePassword(password);
@@ -61,6 +62,12 @@ const getAdmin=asyncWrapper(async(req,res)=>{
 })
 const updateAdmin=asyncWrapper(async(req,res)=>{
     const{id}=req.admin;
+    const errorResponse=updateUserValidation(req.body);
+    if(errorResponse.error) throw new CustomError(errorResponse.error.message,StatusCodes.BAD_REQUEST);
+    if(req.body.email){
+        const emailCheck=await Admin.findOne({email:req.body.email});
+        if(emailCheck) throw new CustomError("Mail already present",StatusCodes.CONFLICT);
+    }
     if(!id) throw new CustomError("Invalid Credential",StatusCodes.FORBIDDEN);
     const updatedData=await Admin.findOneAndUpdate({_id:id},req.body,{runValidators:true,new:true});
     if(!updatedData) throw new CustomError("No admin found",StatusCodes.BAD_REQUEST);
@@ -75,7 +82,8 @@ const updateAdmin=asyncWrapper(async(req,res)=>{
 const updatePassword=asyncWrapper(async(req,res)=>{
     const {id}=req.admin;
     let {password}=req.body;
-    if(!password) throw new CustomError("New password not present",StatusCodes.BAD_REQUEST);
+    const errorResponse=updatePasswordValidation(req.body);
+    if(errorResponse.error) throw new CustomError(errorResponse.error.message,StatusCodes.BAD_REQUEST);  
     if(!id) throw new CustomError("Invalid Credential",StatusCodes.FORBIDDEN);
     password=await hashPassword(password);
     const response=await Admin.findOneAndUpdate({_id:id},{password},{runValidators:true,new:true});

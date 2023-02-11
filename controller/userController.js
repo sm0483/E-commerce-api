@@ -8,18 +8,18 @@ const asyncWrapper = require("../error/asyncWrapper");
 const User = require("../models/user");
 const { StatusCodes } = require("http-status-codes");
 const CustomError = require("../error/custom");
-const { createJwt,tokenValid} = require("../utils/jwt");
+const { createJwt} = require("../utils/jwt");
 const tokenType=require('../constants/tokenType');
 const { hashPassword } = require("../utils/bcrypt");
+const { registerValidation, loginValidation,
+     updateUserValidation,updatePasswordValidation} = require("../utils/joiValidate");
 
 
 
 const registerUser=asyncWrapper(async(req,res)=>{
-    const {name,email,password}=req.body;
-    if(!name) throw new CustomError("Name should be present",StatusCodes.BAD_REQUEST);
-    if(!email) throw new CustomError("Email should be present",StatusCodes.BAD_REQUEST);
-    if(!password) throw new CustomError("Password should be present",StatusCodes.BAD_REQUEST);
-
+    const {email}=req.body;
+    const errorResponse=registerValidation(req.body);
+    if(errorResponse.error) throw new CustomError(errorResponse.error.message,StatusCodes.BAD_REQUEST);
     const emailCheck=await User.find({email});
     if(emailCheck.length!==0) throw new CustomError("Email already present",StatusCodes.CONFLICT);
     const response=await User.create(req.body);
@@ -34,7 +34,8 @@ const registerUser=asyncWrapper(async(req,res)=>{
 
 const loginUser=asyncWrapper(async(req,res)=>{
     const {email,password}=req.body;
-    if(!email || !password) throw new CustomError("Invalid Credential",StatusCodes.FORBIDDEN);
+    const errorResponse=loginValidation(req.body);
+    if(errorResponse.error) throw new CustomError(errorResponse.error.message,StatusCodes.BAD_REQUEST);
     const user = await User.findOne({ email });
     if(!user) throw new CustomError("Invalid Credential",StatusCodes.FORBIDDEN);
     const isValid=await user.comparePassword(password);
@@ -61,7 +62,12 @@ const getUser=asyncWrapper(async(req,res)=>{
 
 const updateUser=asyncWrapper(async(req,res)=>{
     const{id}=req.user;
-    delete req.body.password;
+    const errorResponse=updateUserValidation(req.body);
+    if(errorResponse.error) throw new CustomError(errorResponse.error.message,StatusCodes.BAD_REQUEST);
+    if(req.body.email){
+        const emailCheck=await User.findOne({email:req.body.email});
+        if(emailCheck) throw new CustomError("Mail already present",StatusCodes.CONFLICT);
+    }
     if(!id) throw new CustomError("Invalid Credential",StatusCodes.FORBIDDEN);
     const updatedData=await User.findOneAndUpdate({_id:id},req.body,{runValidators:true,new:true});
     if(!updatedData) throw new CustomError("No user found",StatusCodes.BAD_REQUEST);
@@ -75,11 +81,11 @@ const updateUser=asyncWrapper(async(req,res)=>{
 const updatePassword=asyncWrapper(async(req,res)=>{
     const {id}=req.user;
     let {password}=req.body;
-    if(!password) throw new CustomError("New password not present",StatusCodes.BAD_REQUEST);
+    const errorResponse=updatePasswordValidation(req.body);
+    if(errorResponse.error) throw new CustomError(errorResponse.error.message,StatusCodes.BAD_REQUEST);  
     if(!id) throw new CustomError("Invalid Credential",StatusCodes.FORBIDDEN);
     password=await hashPassword(password);
     const response=await User.findOneAndUpdate({_id:id},{password},{runValidators:true,new:true});
-    console.log(response);
     res.status(StatusCodes.OK).json({
         message:"Password successfully updated"
     })
