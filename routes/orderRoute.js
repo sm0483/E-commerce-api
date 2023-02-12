@@ -22,7 +22,7 @@ router.route('/admin/search').get(verifyAdminToken,getOrderByIdAdmin)
 router.route('/').post(verifyUserToken,createOrder);
 router.route('/').get(verifyUserToken,getOrderByCurrentUser);
 router.route('/:orderId').delete(verifyUserToken,cancelOrder);
-router.route('/:id').get(verifyUserToken,getOrderById);
+router.route('/:orderId').get(verifyUserToken,getOrderById);
 
 
 

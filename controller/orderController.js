@@ -8,6 +8,7 @@ const CustomError = require("../error/custom");
 const orderItem = require("../models/orderItem");
 const {createJwt}=require("../utils/jwt");
 const tokenType=require('../constants/tokenType')
+const {orderValidate}=require('../utils/joiValidate')
 
 
 // {
@@ -65,30 +66,40 @@ const tokenType=require('../constants/tokenType')
 // })
 
 const createOrder=asyncWrapper(async(req,res)=>{
+    const errorResponse=orderValidate(req.body);
+    if(errorResponse.error) throw new CustomError(errorResponse.error.message,StatusCodes.BAD_REQUEST);
     let list=[];
     let totalPrice=0;
     if(req.body.orderItems.length===0)throw new CustomError("Can't proceed without items" ,StatusCodes.BAD_REQUEST);
 
     const attachId=async()=>{
-        const savePromises = req.body.orderItems.map(async(item)=>{
-            const data=new OrderItem(item);
-            return data.save();
-        });
-        const savedOrderItems = await Promise.all(savePromises);
-        list = savedOrderItems.map(item => item._id.toString());
+        try {  
+            const savePromises = req.body.orderItems.map(async(item)=>{
+                const data=new OrderItem(item);
+                return data.save();
+            });
+            const savedOrderItems = await Promise.all(savePromises);
+            list = savedOrderItems.map(item => item._id.toString());   
+        } catch (error) {
+            throw new CustomError("Invalid product id",StatusCodes.BAD_REQUEST);
+        }
     };
     
     await attachId();
 
     const getTotalPrice=async()=>{
-        const getPrice=list.map(async(id)=>{
-            const priceData=await orderItem.findById(id).populate('product','price');
-            console.log(priceData.product.price);
-            return priceData.product.price*priceData.quantity;
-        })
+        try{
+            const getPrice=list.map(async(id)=>{
+                const priceData=await orderItem.findById(id).populate('product','price');
+                console.log(priceData.product.price);
+                return priceData.product.price*priceData.quantity;
+            })
 
-        const priceList=await Promise.all(getPrice);
-        totalPrice=priceList.reduce((a,b)=>a+b,0);
+            const priceList=await Promise.all(getPrice);
+            totalPrice=priceList.reduce((a,b)=>a+b,0);
+        }catch(err){
+            throw new CustomError("Invalid product id",StatusCodes.BAD_REQUEST)
+        }
     }
 
     await getTotalPrice();
@@ -132,9 +143,9 @@ const cancelOrder=asyncWrapper(async(req,res)=>{
 
 
 const getOrderById=asyncWrapper(async(req,res)=>{
-    const {id}=req.params;
-    if(!id) throw new CustomError("Token not present",StatusCodes.BAD_REQUEST);
-    const response=await Order.findOne({_id:id,user:req.user.id});
+    const {orderId}=req.params;
+    if(!orderId) throw new CustomError("Token not present",StatusCodes.BAD_REQUEST);
+    const response=await Order.findOne({_id:orderId,user:req.user.id});
     res.status(StatusCodes.OK).json(response);
 })
 

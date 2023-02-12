@@ -2,12 +2,14 @@ const asyncWrapper = require("../error/asyncWrapper");
 const Review = require("../models/review");
 const { StatusCodes } = require("http-status-codes");
 const CustomError = require("../error/custom");
+const {reviewValidate,reviewEditValidate}=require('../utils/joiValidate')
 
 
 
 
 const createReview=asyncWrapper(async(req,res)=>{
-    delete req.body.user;
+    const {error}=reviewValidate(req.body);
+    if(error) throw new CustomError(error.message,StatusCodes.BAD_REQUEST);
     req.body.user=req.user.id;
     const isPresent=await Review.findOne({product:req.body.product,user:req.user.id});
     if(isPresent) throw new CustomError("Review already present edit it",StatusCodes.CONFLICT)
@@ -26,8 +28,9 @@ const getReviewOfCurrentUser=asyncWrapper(async(req,res)=>{
 
 
 const editReview=asyncWrapper(async(req,res)=>{
+    const {error}=reviewEditValidate(req.body);
+    if(error) throw new CustomError(error.message,StatusCodes.BAD_REQUEST);
     const {id}=req.user;
-    delete req.body.user;
     req.body.user=id;
     const {reviewId}=req.params;
     if(!reviewId) throw new CustomError('reviewId not present',StatusCodes.BAD_REQUEST);
