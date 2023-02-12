@@ -4,9 +4,11 @@ const { createProduct,getAllProduct,getProductById, editProduct, deleteProduct, 
 } = require('../controller/productController');
 const imageGen = require('../middleware/imageGen');
 const router=express.Router();
+const {verifyAdminToken} = require('../middleware/validateToken');
 
-router.route('/').post(createProduct);
+
+router.route('/').post(verifyAdminToken,createProduct);
 router.route('/').get(getAllProduct);
-router.route('/:id').get(getProductById).patch(editProduct).delete(deleteProduct).post(imageGen,uploadImage);
+router.route('/:id').get(getProductById).patch(verifyAdminToken,editProduct).delete(verifyAdminToken,deleteProduct).post(verifyAdminToken,imageGen,uploadImage);
 
 module.exports=router;

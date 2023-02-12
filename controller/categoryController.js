@@ -2,6 +2,7 @@ const asyncWrapper = require("../error/asyncWrapper");
 const Category = require("../models/category");
 const { StatusCodes } = require("http-status-codes");
 const CustomError = require("../error/custom");
+const {categoryValidate,editCategoryValidate}=require('../utils/joiValidate');
 
 
 const getAllCategory=asyncWrapper(async(req,res)=>{
@@ -11,6 +12,8 @@ const getAllCategory=asyncWrapper(async(req,res)=>{
 
 
 const createCategory=asyncWrapper(async(req,res)=>{
+    const validateResponse=categoryValidate(req.body);
+    if(validateResponse.error) throw new CustomError(validateResponse.error.message,StatusCodes.BAD_REQUEST)
     const response=await Category.create(req.body);
     res.status(StatusCodes.OK).json(response);
 })
@@ -27,8 +30,8 @@ const getCategoryById=asyncWrapper(async(req,res)=>{
 
 const editCategory=asyncWrapper(async(req,res)=>{
     const {id:_id}=req.params;
-    delete req.body.images;
-    delete req.body.image;
+    const validateResponse=editCategoryValidate(req.body);
+    if(validateResponse.error) throw new CustomError(validateResponse.error.message,StatusCodes.BAD_REQUEST)
     if(!_id) throw new CustomError("Bad Request",StatusCodes.BAD_REQUEST);
     const updatedData=await Category.findOneAndUpdate({_id},req.body,{runValidators:true,new:true});
     res.status(StatusCodes.OK).json(updatedData);

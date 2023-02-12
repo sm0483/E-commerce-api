@@ -35,22 +35,15 @@ const productSchema = mongoose.Schema({
         min: 0,
         max: 255
     },
-    rating: {
-        type: String,
-        default: 0,
-        min: 0,
-        max: 5
-    },
     isFeatured: {
         type: Boolean,
         default: false
     },
+    review:[{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Review'
+    }]
 },{timestamps: true })
-
-
-productSchema.set('toJSON', {
-  virtuals:true,
-});
 
 
 

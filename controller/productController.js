@@ -2,6 +2,7 @@ const asyncWrapper = require("../error/asyncWrapper");
 const Product = require("../models/product");
 const { StatusCodes } = require("http-status-codes");
 const CustomError = require("../error/custom");
+const {productValidate, productEditValidate} =require("../utils/joiValidate");
 
 
 const getAllProduct=asyncWrapper(async(req,res)=>{
@@ -11,6 +12,8 @@ const getAllProduct=asyncWrapper(async(req,res)=>{
 
 
 const createProduct=asyncWrapper(async(req,res)=>{
+    const validateResponse=productValidate(req.body);
+    if(validateResponse.error) throw new CustomError(validateResponse.error.message,StatusCodes.BAD_REQUEST);
     const response=await Product.create(req.body);
     res.status(StatusCodes.OK).json(response);
 })
@@ -27,8 +30,8 @@ const getProductById=asyncWrapper(async(req,res)=>{
 
 const editProduct=asyncWrapper(async(req,res)=>{
     const {id:_id}=req.params;
-    delete req.body.images;
-    delete req.body.image;
+    const validateResponse=productEditValidate(req.body);
+    if(validateResponse.error) throw new CustomError(validateResponse.error.message,StatusCodes.BAD_REQUEST);
     if(!_id) throw new CustomError("Bad Request",StatusCodes.BAD_REQUEST);
     const updatedData=await Product.findOneAndUpdate({_id},req.body,{runValidators:true,new:true});
     res.status(StatusCodes.OK).json(updatedData);
@@ -54,8 +57,8 @@ const uploadImage=asyncWrapper(async(req,res)=>{
 
 //search data using category data
 const getProductByCategory=asyncWrapper(async(req,res)=>{
-    if(!req.query) throw new CustomError("Invalid query",StatusCodes.BAD_REQUEST);
     console.log(req.query);
+    if(!req.query) throw new CustomError("Invalid query",StatusCodes.BAD_REQUEST);
     const searchData=await Product.find(req.query).populate('category');
     res.status(StatusCodes.OK).json(searchData)
 })
