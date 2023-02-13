@@ -39,10 +39,14 @@ const productSchema = mongoose.Schema({
         type: Boolean,
         default: false
     },
-    review:[{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Review'
-    }]
+    rating:{
+        type:Number,
+        default:0
+    },
+    reviewCount:{
+        type:Number,
+        default:0
+    }
 },{timestamps: true })
 
 
