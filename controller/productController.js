@@ -57,10 +57,15 @@ const uploadImage=asyncWrapper(async(req,res)=>{
 
 //search data using category data
 const getProductByCategory=asyncWrapper(async(req,res)=>{
-    console.log(req.query);
     if(!req.query) throw new CustomError("Invalid query",StatusCodes.BAD_REQUEST);
-    const searchData=await Product.find(req.query).populate('category');
-    res.status(StatusCodes.OK).json(searchData)
+    const searchData=await Product.find({}).populate({
+        path:'category',
+        match:req.query
+    }).exec((err,products)=>{
+        if(err) throw new CustomError("Invalid query",StatusCodes.BAD_REQUEST);
+        res.status(StatusCodes.OK).json(products)
+    });
+
 })
 
 const getProductByCategoryId=asyncWrapper(async(req,res)=>{
