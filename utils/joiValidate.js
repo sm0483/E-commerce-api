@@ -135,9 +135,16 @@ const reviewEditValidate=(data)=>{
   return schema.validate(data);
 }
 
+const validateObjectId=(data)=>{
+  const schema=joi.object({
+    id:joi.string().hex().length(24).required()
+  })
+  return schema.validate(data);
+}
 
 module.exports = { registerValidation, 
   loginValidation,updateUserValidation,updatePasswordValidation,
   productValidate,productEditValidate,categoryValidate,editCategoryValidate,
-  addressValidate,addressEditValidate,orderValidate,reviewValidate,reviewEditValidate
+  addressValidate,addressEditValidate,orderValidate,reviewValidate,reviewEditValidate,
+  validateObjectId
 };

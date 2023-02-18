@@ -2,7 +2,7 @@ const asyncWrapper = require("../error/asyncWrapper");
 const Category = require("../models/category");
 const { StatusCodes } = require("http-status-codes");
 const CustomError = require("../error/custom");
-const {categoryValidate,editCategoryValidate}=require('../utils/joiValidate');
+const {categoryValidate,editCategoryValidate, validateObjectId}=require('../utils/joiValidate');
 
 
 const getAllCategory=asyncWrapper(async(req,res)=>{
@@ -21,7 +21,8 @@ const createCategory=asyncWrapper(async(req,res)=>{
 
 const getCategoryById=asyncWrapper(async(req,res)=>{
     const {id}=req.params;
-    if(!id) throw new CustomError("Bad Request",StatusCodes.BAD_REQUEST);
+    const {error}=validateObjectId({id});
+    if(error) throw new CustomError(error.message,StatusCodes.BAD_REQUEST);
     const response=await Category.findById(id);
     if(!response) throw new CustomError("Data not found",StatusCodes.NOT_FOUND);
     res.status(StatusCodes.OK).json(response)
@@ -29,18 +30,20 @@ const getCategoryById=asyncWrapper(async(req,res)=>{
 
 
 const editCategory=asyncWrapper(async(req,res)=>{
-    const {id:_id}=req.params;
+    const {id}=req.params;
+    const {error}=validateObjectId({id});
+    if(error) throw new CustomError(error.message,StatusCodes.BAD_REQUEST);
     const validateResponse=editCategoryValidate(req.body);
     if(validateResponse.error) throw new CustomError(validateResponse.error.message,StatusCodes.BAD_REQUEST)
-    if(!_id) throw new CustomError("Bad Request",StatusCodes.BAD_REQUEST);
-    const updatedData=await Category.findOneAndUpdate({_id},req.body,{runValidators:true,new:true});
+    const updatedData=await Category.findOneAndUpdate({_id:id},req.body,{runValidators:true,new:true});
     res.status(StatusCodes.OK).json(updatedData);
 })
 
 const deleteCategory=asyncWrapper(async(req,res)=>{
-    const {id:_id}=req.params;
-    if(!_id) throw new CustomError("Bad Request",StatusCodes.BAD_REQUEST);
-    const response=await Category.findOneAndDelete({_id});
+    const {id}=req.params;
+    const {error}=validateObjectId({id});
+    if(error) throw new CustomError(error.message,StatusCodes.BAD_REQUEST);
+    const response=await Category.findOneAndDelete({_id:id});
     res.status(StatusCodes.OK).json(response);
 })
 

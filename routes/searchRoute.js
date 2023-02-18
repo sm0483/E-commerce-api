@@ -5,7 +5,8 @@ const
 const router=express.Router();
 
 router.route('/by-category').get(getProductByCategory)
-router.route('/by-category/:catId').get(getProductByCategoryId);
+// router.route('/by-category/:catId').get(getProductByCategoryId);
+
 
 module.exports=router;
 
