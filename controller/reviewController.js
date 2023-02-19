@@ -2,7 +2,7 @@ const asyncWrapper = require("../error/asyncWrapper");
 const Review = require("../models/review");
 const { StatusCodes } = require("http-status-codes");
 const CustomError = require("../error/custom");
-const {reviewValidate,reviewEditValidate}=require('../utils/joiValidate')
+const {reviewValidate,reviewEditValidate,validateObjectId}=require('../utils/joiValidate')
 const Product = require("../models/product");
 
 
@@ -28,7 +28,8 @@ const createReview=asyncWrapper(async(req,res)=>{
 
 const getReviewOfCurrentUser=asyncWrapper(async(req,res)=>{
     const {id}=req.user;
-    if(!id) throw new CustomError("Bad Request",StatusCodes.BAD_REQUEST);
+    const {error}=validateObjectId({id});
+    if(error) throw new CustomError(error.message,StatusCodes.BAD_REQUEST);
     const response=await Review.find({user:id});
     if(!response) throw new CustomError("Data not found",StatusCodes.NOT_FOUND);
     res.status(StatusCodes.OK).json(response)
@@ -40,9 +41,11 @@ const editReview=asyncWrapper(async(req,res)=>{
     if(error) throw new CustomError(error.message,StatusCodes.BAD_REQUEST);
     const {id}=req.user;
     req.body.user=id;
+    const {error:errorId}=validateObjectId({id});
+    if(errorId) throw new CustomError(errorId.message,StatusCodes.BAD_REQUEST);
     const {reviewId}=req.params;
-    if(!reviewId) throw new CustomError('reviewId not present',StatusCodes.BAD_REQUEST);
-    if(!id) throw new CustomError("Bad Request",StatusCodes.BAD_REQUEST);
+    const {error:errorReviewId}=validateObjectId({id:reviewId});
+    if(errorReviewId) throw new CustomError(errorReviewId.message,StatusCodes.BAD_REQUEST);
     const data=await Review.findById(reviewId);
     if(!data) throw new CustomError("Product not found",StatusCodes.NOT_FOUND);
     const {product,rating}=data;
@@ -55,13 +58,15 @@ const editReview=asyncWrapper(async(req,res)=>{
 
 const deleteReview=asyncWrapper(async(req,res)=>{
     const {reviewId}=req.params;
+    const {error:errorReviewId}=validateObjectId({id:reviewId});
+    if(errorReviewId) throw new CustomError(errorReviewId.message,StatusCodes.BAD_REQUEST);
     const {id}=req.user;
-    if(!reviewId) throw new CustomError("Bad Request",StatusCodes.BAD_REQUEST);
+    const {error}=validateObjectId({id});
+    if(error) throw new CustomError(error.message,StatusCodes.BAD_REQUEST);
     const reviewData=await Review.findOne({_id:reviewId,user:id});
     if(!reviewData) throw new CustomError("Review not found",StatusCodes.NOT_FOUND);
     const {product,rating}=reviewData;
     const {rating:productTotalRating,reviewCount}=await Product.findById(product);
-    console.log(productTotalRating,reviewCount);
     const newCount=reviewCount-1;
     let newRating=0;
     if(!newCount) newRating=0;
@@ -74,6 +79,8 @@ const deleteReview=asyncWrapper(async(req,res)=>{
 
 const getAllReviewOfProduct=asyncWrapper(async(req,res)=>{
     const {productId}=req.query;
+    const {error}=validateObjectId({id:productId});
+    if(error) throw new CustomError(error.message,StatusCodes.BAD_REQUEST);
     if(!productId) throw new CustomError("Invalid request provide Product id",StatusCodes.BAD_REQUEST);
     const response=await Review.find({product:productId});
     res.status(StatusCodes.OK).json(response)
@@ -81,7 +88,8 @@ const getAllReviewOfProduct=asyncWrapper(async(req,res)=>{
 
 const getReview=asyncWrapper(async(req,res)=>{
     const {reviewId}=req.params;
-    if(!reviewId) throw new CustomError("Invalid request",StatusCodes.BAD_REQUEST)
+    const {error}=validateObjectId({id:reviewId});
+    if(error) throw new CustomError(error.message,StatusCodes.BAD_REQUEST);
     const response=await Review.findById(reviewId);
     res.status(StatusCodes.OK).json(response);
 })

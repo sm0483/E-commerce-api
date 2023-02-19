@@ -8,7 +8,7 @@ const CustomError = require("../error/custom");
 const orderItem = require("../models/orderItem");
 const {createJwt}=require("../utils/jwt");
 const tokenType=require('../constants/tokenType')
-const {orderValidate}=require('../utils/joiValidate')
+const {orderValidate,validateObjectId}=require('../utils/joiValidate')
 
 
 // {
@@ -103,7 +103,11 @@ const createOrder=asyncWrapper(async(req,res)=>{
     }
 
     await getTotalPrice();
-    const address=await Address.findOne({user:req.user.id});
+    const {id}=req.user;
+    const {error}=validateObjectId({id});
+    if(error) throw new CustomError("Token not valid",StatusCodes.BAD_REQUEST);
+
+    const address=await Address.findOne({user:id});
     if(!address) throw new CustomError("update address and create order",StatusCodes.CONFLICT);
 
     let response=await Order.create({
@@ -126,7 +130,8 @@ const getAllOrder=asyncWrapper(async(req,res)=>{
 
 const getOrderByCurrentUser=asyncWrapper(async(req,res)=>{
     const {id}=req.user;
-    if(!id) throw new CustomError("Token not present",StatusCodes.BAD_REQUEST);
+    const {error}=validateObjectId({id});
+    if(error) throw new CustomError("Token not valid",StatusCodes.BAD_REQUEST);
     const response=await Order.find({user:id});
     res.status(StatusCodes.OK).json(response)
 })
@@ -134,9 +139,11 @@ const getOrderByCurrentUser=asyncWrapper(async(req,res)=>{
 
 const cancelOrder=asyncWrapper(async(req,res)=>{
     const {id}=req.user;
-    if(!id) throw new CustomError("Token not present or expired",StatusCodes.BAD_REQUEST);
+    const {error}=validateObjectId({id});
+    if(error) throw new CustomError("Token not valid",StatusCodes.BAD_REQUEST);
     const {orderId}=req.params;
-    if(!orderId) throw new CustomError("Give a orderId",StatusCodes.BAD_REQUEST);
+    const {error:err}=validateObjectId({id:orderId});
+    if(err) throw new CustomError(err.message,StatusCodes.BAD_REQUEST);
     const response=await Order.findOneAndUpdate({user:id,_id:orderId},{status:'canceled'},{runValidators:true,new:true});
     res.status(StatusCodes.OK).json(response);
 })
@@ -144,7 +151,8 @@ const cancelOrder=asyncWrapper(async(req,res)=>{
 
 const getOrderById=asyncWrapper(async(req,res)=>{
     const {orderId}=req.params;
-    if(!orderId) throw new CustomError("Token not present",StatusCodes.BAD_REQUEST);
+    const {error}=validateObjectId({id:orderId});
+    if(error) throw new CustomError(error.message,StatusCodes.BAD_REQUEST);
     const response=await Order.findOne({_id:orderId,user:req.user.id});
     res.status(StatusCodes.OK).json(response);
 })
