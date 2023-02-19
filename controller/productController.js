@@ -50,7 +50,7 @@ const deleteProduct=asyncWrapper(async(req,res)=>{
 
 const uploadImage=asyncWrapper(async(req,res)=>{
     const {id:_id}=req.params;
-    const {error}=validateObjectId({_id});
+    const {error}=validateObjectId({id:_id});
     if(error) throw new CustomError(error.message,StatusCodes.BAD_REQUEST);
     const {image,images}=req.body;
     const data={image,images}
