@@ -6,11 +6,14 @@ const {
 }=require('http-status-codes');
 const CustomError = require("../error/custom");
 const uploadFile = require("../utils/cloudinary");
+const { validateObjectId } = require("../utils/joiValidate");
 
 
 const imageGen=asyncWrapper(async(req,res,next)=>{
-    console.log(req.files);
     let url=undefined;
+    const {id}=req.params;
+    const {error}=validateObjectId({id});
+    if(error) throw new CustomError("product id not  valid",StatusCodes.BAD_REQUEST);
     try {
         if(!req.files) throw new CustomError("image not present",StatusCodes.BAD_REQUEST);
         if(!req.files.image) throw new CustomError("Thumbnail image not present",StatusCodes.BAD_REQUEST);
