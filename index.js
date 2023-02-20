@@ -34,9 +34,11 @@ const reviewRoute=require("./routes/reviewRoute");
 //error handler
 const errorHandler = require("./middleware/err");
 const pageNotFound = require("./middleware/pageNotFound");
+const cors = require('cors');
 
 app.use(xss());
 app.use(helmet());
+app.use(cors());
 
 app.use(rateLimit({
 	windowMs: 15 * 60 * 1000, 
